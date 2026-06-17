@@ -47,16 +47,34 @@ def ask_question(question):
     #     })
 
     prompt = f"""
-Answer ONLY from the provided context.
+        Answer ONLY from the provided context.
 
-Context:
-{context}
+        Formatting Rules:
 
-Question:
-{question}
+        1. Use clear headings.
+        2. Use subheadings where applicable.
+        3. Use bullet points instead of long paragraphs.
+        4. Make important terms bold.
+        5. Keep responses easy to read.
+        6. Use Markdown formatting.
 
-Answer:
-"""
+        Return HTML tags only.
+
+        Use:
+        <h2>
+        <h3>
+        <ul>
+        <li>
+        <b>
+
+        Context:
+        {context}
+
+        Question:
+        {question}
+
+        Answer:
+        """
 
     response = model.generate_content(prompt)
 
