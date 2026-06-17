@@ -1,38 +1,61 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from chatbot import ask_question
 
-app = FastAPI(
-    title="Company Policy Chatbot",
-    version="1.0"
+app = FastAPI()
+
+# Static Files
+app.mount(
+    "/static",
+    StaticFiles(directory="static"),
+    name="static"
+)
+
+# Templates
+templates = Jinja2Templates(
+    directory="templates"
 )
 
 class QueryRequest(BaseModel):
     question: str
 
+
+# @app.get("/")
+# def home(request: Request):
+
+#     return templates.TemplateResponse(
+#         "index.html",
+#         {
+#             "request": request
+#         }
+#     )
+
 @app.get("/")
-def home():
-    return {
-        "message": "Company Policy Chatbot API Running"
-    }
+def home(request: Request):
 
-# @app.post("/ask")
-# def ask(req: QueryRequest):
+    print("INDEX ROUTE HIT")
 
-#     answer = ask_question(req.question)
-
-#     return {
-#         "question": req.question,
-#         "answer": answer
-#     }
+    return templates.TemplateResponse(
+        request=request,
+        name="index.html"
+    )
 
 
 @app.post("/ask")
 def ask(req: QueryRequest):
 
-    return ask_question(req.question)
+    answer = ask_question(
+        req.question
+    )
 
-if __name__ == "__main__":
-    import webbrowser
-    webbrowser.open("http://127.0.0.1:8000/docs")
+    return {
+        "answer": answer
+    }
+
+
+# if __name__ == "__main__":
+#     import webbrowser
+#     webbrowser.open("http://127.0.0.1:8000")
