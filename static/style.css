@@ -40,3 +40,33 @@ body{
 .bot-message li{
     margin-bottom:8px;
 }
+
+.sidebar{
+    background:white;
+    height:100vh;
+
+    border-right:1px solid #ddd;
+
+    padding:15px;
+}
+
+#conversation-list{
+    height:85vh;
+    overflow-y:auto;
+}
+
+.conversation-item{
+    background:#f8f9fa;
+
+    padding:10px;
+
+    border-radius:8px;
+
+    margin-bottom:10px;
+
+    cursor:pointer;
+}
+
+.conversation-item:hover{
+    background:#e2e6ea;
+}
