@@ -22,14 +22,24 @@ embeddings = HuggingFaceEmbeddings(
     model_name="sentence-transformers/all-MiniLM-L6-v2"
 )
 
-vectorstore = FAISS.load_local(
-    "vectorstore",
-    embeddings,
-    allow_dangerous_deserialization=True
-)
+# vectorstore = FAISS.load_local(
+#     "vectorstore",
+#     embeddings,
+#     allow_dangerous_deserialization=True
+# )
+
+def load_vectorstore():
+
+    return FAISS.load_local(
+        "vectorstore",
+        embeddings,
+        allow_dangerous_deserialization=True
+    )
 
 
 def ask_question(question):
+
+    vectorstore = load_vectorstore()
 
     docs_with_scores = vectorstore.similarity_search_with_score(
         question,
@@ -38,12 +48,16 @@ def ask_question(question):
 
     relevant_docs = []
 
-    for doc, score in docs_with_scores:
-        # print("=" * 50)
-        # print(score)
-        # print(doc.page_content[:200])
+    print("\nSEARCH RESULTS")
+    print("=" * 50)
 
-        print(f"Score: {score}")
+    for doc, score in docs_with_scores:
+        print("SOURCE:", doc.metadata.get("source"))
+        print("SCORE:", score)
+        print(doc.page_content[:200])
+        print("-" * 50)
+
+        # print(f"Score: {score}")
 
         # Lower score = better match
         if score < 1.5:

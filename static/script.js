@@ -192,3 +192,107 @@ window.onload = async () => {
     }
 
 };
+
+window.deleteAllConversations = async function(){
+
+    const confirmed = confirm(
+        "Delete all conversations?"
+    );
+
+    if(!confirmed){
+        return;
+    }
+
+    await fetch(
+        "/conversations",
+        {
+            method:"DELETE"
+        }
+    );
+
+    document.getElementById(
+        "chat-box"
+    ).innerHTML = "";
+
+    currentConversationId = null;
+
+    await loadConversations();
+
+    await createConversation();
+}
+
+window.uploadPdf = async function (){
+
+    const fileInput =
+        document.getElementById(
+            "pdfFile"
+        );
+
+    const file =
+        fileInput.files[0];
+
+    if(!file){
+        alert("Select PDF");
+        return;
+    }
+
+    const formData =
+        new FormData();
+
+    formData.append(
+        "file",
+        file
+    );
+
+    const response =
+        await fetch(
+            "/upload",
+            {
+                method:"POST",
+                body:formData
+            }
+        );
+
+    const data =
+        await response.json();
+
+    alert(
+        data.message
+    );
+}
+
+window.loadPdfs = async function(){
+
+    const response =
+        await fetch("/pdfs");
+
+    const pdfs =
+        await response.json();
+
+    const list =
+        document.getElementById(
+            "pdf-list"
+        );
+
+    list.innerHTML = "";
+
+    pdfs.forEach(pdf => {
+
+        list.innerHTML += `
+            <div class="pdf-item">
+
+                ${pdf.filename}
+
+                <button
+                    class="btn btn-sm btn-danger"
+                    onclick="deletePdf(${pdf.id})">
+
+                    X
+
+                </button>
+
+            </div>
+        `;
+    });
+
+}
