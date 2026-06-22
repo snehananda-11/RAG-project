@@ -59,3 +59,17 @@ class Message(Base):
         DateTime,
         default=datetime.utcnow
     )
+
+class UploadedPDF(Base):
+
+    __tablename__ = "uploaded_pdfs"
+
+    id = Column(
+        Integer,
+        primary_key=True
+    )
+
+    filename = Column(
+        String,
+        unique=True
+    )

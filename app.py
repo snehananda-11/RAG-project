@@ -9,6 +9,18 @@ from database import SessionLocal
 from models import Conversation
 from models import Message
 
+from fastapi import UploadFile
+from fastapi import File
+
+import shutil
+
+from services.pdf_service import extract_pdf_text
+from services.vector_service import add_document_to_vectorstore
+
+from models import UploadedPDF
+import os
+
+
 app = FastAPI()
 
 # Static Files
@@ -140,6 +152,23 @@ def delete_conversation(
         "message":"deleted"
     }
 
+@app.delete("/conversations")
+def delete_all_conversations():
+
+    db = SessionLocal()
+
+    db.query(Message).delete()
+
+    db.query(Conversation).delete()
+
+    db.commit()
+
+    db.close()
+
+    return {
+        "message": "All conversations deleted"
+    }
+
 @app.post("/ask")
 def ask(req: QueryRequest):
 
@@ -185,6 +214,118 @@ def ask(req: QueryRequest):
 
     finally:
         db.close()
+
+
+@app.post("/upload")
+def upload_pdf(file: UploadFile = File(...)):
+
+    db = SessionLocal()
+
+    import os
+
+    os.makedirs(
+        "uploads",
+        exist_ok=True
+    )
+
+    existing = db.query(
+        UploadedPDF
+    ).filter(
+        UploadedPDF.filename == file.filename
+    ).first()
+
+    if existing:
+
+        db.close()
+
+        return {
+            "message": "PDF already uploaded"
+        }
+
+    file_path = f"uploads/{file.filename}"
+
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(
+            file.file,
+            buffer
+        )
+
+    # Extract text
+    text = extract_pdf_text(
+        file_path
+    )
+
+    # print("=" * 50)
+    # print("FILE:", file.filename)
+    # print("TEXT LENGTH:", len(text))
+    # print(text[:1000])
+    # print("=" * 50)
+
+    # Add to vector store
+    add_document_to_vectorstore(
+        text,
+        file.filename
+    )
+
+    pdf_record = UploadedPDF(
+    filename=file.filename
+    )
+
+    db.add(pdf_record)
+    db.commit()
+    db.close()
+
+    return {
+        "message": f"{file.filename} uploaded successfully"
+    }
+
+@app.get("/pdfs")
+def get_pdfs():
+
+    db = SessionLocal()
+
+    pdfs = db.query(
+        UploadedPDF
+    ).all()
+
+    db.close()
+
+    return [
+        {
+            "id": pdf.id,
+            "filename": pdf.filename
+        }
+        for pdf in pdfs
+    ]
+
+@app.delete("/pdf/{pdf_id}")
+def delete_pdf(pdf_id:int):
+
+    db = SessionLocal()
+
+    pdf = db.query(
+        UploadedPDF
+    ).filter(
+        UploadedPDF.id == pdf_id
+    ).first()
+
+    if not pdf:
+
+        db.close()
+
+        return {
+            "message":"PDF not found"
+        }
+
+    db.delete(pdf)
+
+    db.commit()
+
+    db.close()
+
+    return {
+        "message":"PDF deleted"
+    }
 
 # if __name__ == "__main__":
 #     import webbrowser
